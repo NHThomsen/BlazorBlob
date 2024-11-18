@@ -1,0 +1,96 @@
+﻿@page "/"
+@using System.Text
+@using Microsoft.Data.SqlClient
+@using Microsoft.EntityFrameworkCore
+@rendermode InteractiveServer
+
+<PageTitle>Home</PageTitle>
+
+<EditForm Model="@picture1" OnValidSubmit="SubmitForm">
+    <InputFile OnChange="ConvertPhoto" /><br />
+    <button type="submit">Opret</button>
+</EditForm>
+
+<div>Message: @uploadMessage</div>
+
+<div>
+    @if (fileToShow != null)
+    {
+        <img src="data:image;base64, @System.Convert.ToBase64String(fileToShow)" />
+    }
+    else
+    {
+        <p>Image not found</p>
+    }
+</div>
+@code {
+    private string? uploadMessage = "";
+    public Picture picture1 = new Picture();
+    private byte[]? bytesToUpload;
+    private byte[]? fileToShow;
+
+    public static byte[] GetPhoto()
+    {
+        FileStream stream = new FileStream(System.IO.Directory.GetCurrentDirectory() + "/wwwroot/4d81218acc942ffaf87005835f0b94db.jpg", FileMode.Open, FileAccess.Read);
+        BinaryReader reader = new BinaryReader(stream);
+
+        byte[] photo = reader.ReadBytes((int)stream.Length);
+
+        reader.Close();
+        stream.Close();
+
+        return photo;
+    }
+    async Task ConvertPhoto(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            // Puts the file into a memory stream and saves the byte array, for later database use
+            MemoryStream memoryStream = new MemoryStream();
+            await e.File.OpenReadStream().CopyToAsync(memoryStream);
+            bytesToUpload = memoryStream.ToArray();
+            uploadMessage = bytesToUpload.Length.ToString();
+        }
+        catch(Exception ex)
+        {
+            uploadMessage = ex.Message;
+        }
+    }
+
+    private async Task SubmitForm()
+    {
+        if(bytesToUpload != null)
+        {
+            Picture picture = new Picture();
+            // Puts the previously prepared byte array into an entity, ready for database
+            picture.Picture1 = bytesToUpload;
+
+            using (DbContext dbContext = new BlobPicturesContext())
+            {
+                dbContext.Set<Picture>().Add(picture);
+                dbContext.SaveChanges();
+            }
+        }
+        await Task.CompletedTask;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            using DbContext dbContext = new BlobPicturesContext();
+
+            Picture? result = dbContext.Set<Picture>().FirstOrDefault(p => p.Id == 3);
+
+            if (result != null)
+            {
+                fileToShow = result.Picture1;
+            }
+            await Task.CompletedTask;
+        }
+        catch(Exception ex)
+        {
+            uploadMessage = ex.Message;
+        }
+    }
+}
