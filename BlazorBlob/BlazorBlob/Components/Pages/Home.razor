@@ -90,11 +90,11 @@
             {
                 fileToShow = result.Picture1;
             }
-            await Task.CompletedTask;
         }
         catch(Exception ex)
         {
             uploadMessage = ex.Message;
         }
+        await Task.CompletedTask;
     }
 }
