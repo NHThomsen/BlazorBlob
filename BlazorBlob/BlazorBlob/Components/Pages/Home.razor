@@ -26,9 +26,11 @@
 @code {
     private string? uploadMessage = "";
     public Picture picture1 = new Picture();
+    // Temporary container for the bytes, to be put into the database
     private byte[]? bytesToUpload;
     private byte[]? fileToShow;
 
+    // Test method to showcase how BLOB works with pictures
     public static byte[] GetPhoto()
     {
         FileStream stream = new FileStream(System.IO.Directory.GetCurrentDirectory() + "/wwwroot/4d81218acc942ffaf87005835f0b94db.jpg", FileMode.Open, FileAccess.Read);
@@ -71,9 +73,11 @@
                 dbContext.SaveChanges();
             }
         }
+        bytesToUpload = null;
         await Task.CompletedTask;
     }
 
+    // Shows a picture, from BLOB, if found
     protected override async Task OnInitializedAsync()
     {
         try
