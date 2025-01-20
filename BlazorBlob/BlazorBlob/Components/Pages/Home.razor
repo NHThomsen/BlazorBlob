@@ -69,6 +69,11 @@
 
             using (DbContext dbContext = new BlobPicturesContext())
             {
+                // 1: Change connection string in context file
+                // 2: Change name in Insert
+                // 3: Uncomment line below
+                //dbContext.Database.ExecuteSql($"INSERT INTO PlaceholderImages VALUES ({bytesToUpload},'name')");
+
                 dbContext.Set<Picture>().Add(picture);
                 dbContext.SaveChanges();
             }
